@@ -108,21 +108,21 @@ class Game:
                         return False
         return True
 
-    class Graphics:
-        def __init__(self):
-            self.caption = "Checkers"
+class Graphics:
+    def __init__(self):
+        self.caption = "Checkers"
 
-            self.fps = 60
-            self.clock = pygame.time.Clock()
+        self.fps = 60
+        self.clock = pygame.time.Clock()
 
-            self.window_size = 600
-            self.screen = pygame.display.set_mode((self.window_size, self.window_size))
-            self.background = pygame.image.load('resources/board.png')
+        self.window_size = 600
+        self.screen = pygame.display.set_mode((self.window_size, self.window_size))
+        self.background = pygame.image.load('resources/board.png')
 
-            self.square_size = self.window_size >> 3
-            self.piece_size = self.square_size >> 1
+        self.square_size = self.window_size >> 3
+        self.piece_size = self.square_size >> 1
 
-            self.message = False
+        self.message = False
 
     def setup_window(self):
         """
@@ -149,30 +149,63 @@ class Game:
     def draw_board_squares(self, board):
         for x in range(8):
             for y in range(8):
-                pygame.draw.rect(self.screen, board[x][y].color, (x * self.square_size, y * self.square_size, self.square_size, self.square_size), )
+                pygame.draw.rect(
+                    self.screen,
+                    board[x][y].color,
+                    (x * self.square_size, y * self.square_size, self.square_size, self.square_size),
+                )
 
     def draw_board_pieces(self, board):
         for x in range(8):
             for y in range(8):
-               if board.matrix[x][y].occupant != None:
-					pygame.draw.circle(self.screen, board.matrix[x][y].occupant.color, self.pixel_coords((x,y)), self.piece_size) 
-
-					if board.location((x,y)).occupant.king == True:
-						pygame.draw.circle(self.screen, GOLD, self.pixel_coords((x,y)), int (self.piece_size / 1.7), self.piece_size >> 2)
-
+                if board.matrix[x][y].occupant is not None:
+                    pygame.draw.circle(
+                        self.screen,
+                        board.matrix[x][y].occupant.color,
+                        self.pixel_coords((x, y)),
+                        self.piece_size,
+                    )
+                    if board.location((x, y)).occupant.king == True:
+                        pygame.draw.circle(
+                            self.screen,
+                            GOLD,
+                            self.pixel_coords((x, y)),
+                            int(self.piece_size / 1.7),
+                            self.piece_size >> 2,
+                        )
 
     def pixel_coords(self, board_coords):
-        return (board_coords[0] * self.square_size + self.piece_size, board_coords[1] * self.square_size + self.piece_size)
+        return (
+            board_coords[0] * self.square_size + self.piece_size,
+            board_coords[1] * self.square_size + self.piece_size,
+        )
 
     def board_coords(self, pixel):
         return (pixel[0] // self.square_size, pixel[1] // self.square_size)
 
     def highlight_squares(self, squares, origin):
-		for square in squares:
-			pygame.draw.rect(self.screen, HIGH, (square[0] * self.square_size, square[1] * self.square_size, self.square_size, self.square_size))	
-
-		if origin != None:
-			pygame.draw.rect(self.screen, HIGH, (origin[0] * self.square_size, origin[1] * self.square_size, self.square_size, self.square_size))
+        for square in squares:
+            pygame.draw.rect(
+                self.screen,
+                HIGH,
+                (
+                    square[0] * self.square_size,
+                    square[1] * self.square_size,
+                    self.square_size,
+                    self.square_size,
+                ),
+            )
+        if origin is not None:
+            pygame.draw.rect(
+                self.screen,
+                HIGH,
+                (
+                    origin[0] * self.square_size,
+                    origin[1] * self.square_size,
+                    self.square_size,
+                    self.square_size,
+                ),
+            )
 
     def draw_message(self, message):
         self.message = True
