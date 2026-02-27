@@ -1,3 +1,4 @@
+from re import T
 import pygame, sys
 from pygame.locals import *
 
@@ -82,7 +83,7 @@ class Game:
             self.update()
 
     def end_turn(self):
-        
+
         if self.turn == BLUE:
             self.turn = RED
 
@@ -263,4 +264,115 @@ class Board:
             return (x - 1, y - 1)
         elif dir == NORTHEAST:
             return (x + 1, y - 1)
-        elif dir ==
+        elif dir == SOUTHWEST:
+            return (x - 1, y + 1)
+        elif dir == SOUTHEAST:
+            return (x + 1, y + 1)
+        else:
+            return 0
+
+    def abjacent(self, pixel):
+        x = pixel[0]
+        y = pixel[1]
+
+        return [self.rel(NORTHWEST, (x,y)), self.rel(NORTHEAST, (x,y)), self.rel(SOUTHEAST, (x,y)), self.rel(SOUTHWEST, (x,y))]
+
+    def location(self, pixel):
+        x = pixel[0]
+        y = pixel[1]
+
+        return self.matrix[x][y]
+
+    def blind_legal_moves(self, pixel):
+        x = pixel[0]
+        y = pixel[1]
+        if self.matrix[x][y].occupant != None:
+
+            if self.matrix[x][y].occupant.kind == False and self.matrix[x][y].occupant.color == BLUE:
+                blind_legal_moves = [self.rel(NORTHWEST, (x,y)), self.rel(NORTHEAST, (x,y))]
+
+            elif self.matrix[x][y].occupant.kind == False and self.matrix[x][y].occupant.color == RED:
+                blind_legal_moves = [self.rel(SOUTHWEST, (x,y)), self.rel(SOUTHEAST, (x,y))]
+            else:
+                blind_legal_moves = [self.rel(NORTHWEST, (x,y)), self.rel(NORTHEAST, (x,y)), self.rel(SOUTHWEST, (x,y)), self.rel(SOUTHEAST, (x,y))]
+
+        else:
+            blind_legal_moves = []
+
+        return blind_legal_moves
+
+    def legal_moves(self, pixel, hop = False):
+        x = pixel[0]
+        y = pixel[1]
+        blind_legal_moves = self.blind_legal_moves((x,y))
+        legal_moves = []
+
+        if hop == False:
+            for move in blind_legal_moves:
+                if hop == False:
+                    if self.on_board(move):
+                        if self.location(move).occupant == None:
+                            legal_moves.append(move)
+
+                        elif self.location(move).occupant.color != self.location((x,y)).occupant.color and self.on_board((move[0] + (move[0] - x), move[1] + (move[1] - y))) and self.location((move[0] + (move[0] - x), move[1] + (move[1] - y))).occupant == None:
+                            legal_moves.append((move[0] + (move[0] - x), move[1] + (move[1] - y)))
+
+        else:
+            for move in blind_legal_moves:
+                if self.on_board(move) and self.location(move).occupant != None:
+                    if self.location(move).occupant.color != self.location((x,y)).occupant.color and self.on_board((move[0] + (move[0] - x), move[1] + (move[1] - y))) and self.location((move[0] + (move[0] - x), move[1] + (move[1] - y))).occupant == None:
+                        legal_moves.append((move[0] + (move[0] - x), move[1] + (move[1] - y)))
+
+        return legal_moves
+
+    def remove_piece(self, pixel):
+        x = pixel[0]
+        y = pixel[1]
+        self.matrix[x][y].occupant = None
+
+    def move_piace(self, pixel_start, pixel_end):
+        start_x = pixel_start[0]
+        start_y = pixel_start[1]
+        end_x = pixel[0]
+        end_y = pixel[1]
+
+        self.matrix[end_x][end_y].occupant = self.matrix[start_x][satrt_y].occupant
+        self.remove_piece((start_x, end_y))
+
+    def is_end_square(self, coords):
+        if coords[1] == 0 or coords[1] == 7:
+            return True
+        else:
+            return False
+
+    def on_board(self, pixel):
+        x = pixel[0]
+        y = pixel[1]
+        if x < 0 or y < 0 or x > 7 or y > 7:
+            return False
+        else:
+            return True
+
+    def kind(self, pixel):
+        x = pixel[0]
+        y = pixel[1]
+        if self.location((x,y)).occupant != None:
+            if (self.location((x,y)).occupant.color == BLUE and y == 0) or (self.location((x,y)).occupant.color == RED and y == 7):
+                self.location((x,y)).occupant.kind = True
+
+class Piece:
+    def __init__(self, color, kind = False):
+        self.color = color
+        self.kind = kind
+
+class Square:
+    def __init__(self, color, occupant = None):
+        self.color = color
+        self.occupant = occupant
+
+def main():
+    game = Game()
+    game.main()
+
+if __name__ == "__main__":
+    main()
