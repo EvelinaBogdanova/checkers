@@ -1,6 +1,6 @@
-from re import T
-import pygame, sys
-from pygame.locals import *
+import pygame
+import sys
+from pygame.locals import QUIT, MOUSEBUTTONDOWN
 
 pygame.font.init()
 
@@ -29,15 +29,15 @@ class Game:
     def setup(self):
         self.graphics.setup_window()
 
-    def even_loop(self):
+    def event_loop(self):
         self.mouse_pos = self.graphics.board_coords(pygame.mouse.get_pos())
         if self.selected_piece != None:
-            self.selected_legal_moves = self.board.legal_moves(self.selected_piace, self.hop)
+            self.selected_legal_moves = self.board.legal_moves(self.selected_piece, self.hop)
 
         for event in pygame.event.get():
 
             if event.type == QUIT:
-                self.teminate_game()
+                self.terminate_game()
 
             if event.type == MOUSEBUTTONDOWN:
                 if self.hop == False:
@@ -46,7 +46,7 @@ class Game:
 
                     elif self.selected_piece != None and self.mouse_pos in self.board.legal_moves(self.selected_piece):
 
-                        self.board.move_piace(self.selected_piece, self.mouse_pos)
+                        self.board.move_piece(self.selected_piece, self.mouse_pos)
 
                         if self.mouse_pos not in self.board.adjacent(self.selected_piece):
                             self.board.remove_piece(((self.selected_piece[0] + self.mouse_pos[0]) >> 1, (self.selected_piece[1] + self.mouse_pos[1]) >> 1))
@@ -66,7 +66,7 @@ class Game:
                         self.end_turn()
 
                     else:
-                        self.salected_piece = self.mouse_pos
+                        self.selected_piece = self.mouse_pos
 
     def update(self):
         self.graphics.update_display(self.board, self.selected_legal_moves, self.selected_piece)
@@ -166,7 +166,7 @@ class Graphics:
                         self.pixel_coords((x, y)),
                         self.piece_size,
                     )
-                    if board.location((x, y)).occupant.king == True:
+                    if board.location((x, y)).occupant.kind == True:
                         pygame.draw.circle(
                             self.screen,
                             GOLD,
@@ -216,33 +216,32 @@ class Graphics:
         self.text_rect_obj.center = (self.window_size >> 1, self.window_size >> 1)
 
 class Board:
-	def __init__(self):
-		self.matrix = self.new_board()
+    def __init__(self):
+        self.matrix = self.new_board()
 
-	def new_board(self):
+    def new_board(self):
+        matrix = [[None] * 8 for i in range(8)]
 
-		matrix = [[None] * 8 for i in range(8)]
+        for x in range(8):
+            for y in range(8):
+                if (x % 2 != 0) and (y % 2 == 0):
+                    matrix[y][x] = Square(WHITE)
+                elif (x % 2 != 0) and (y % 2 != 0):
+                    matrix[y][x] = Square(BLACK)
+                elif (x % 2 == 0) and (y % 2 != 0):
+                    matrix[y][x] = Square(WHITE)
+                elif (x % 2 == 0) and (y % 2 == 0):
+                    matrix[y][x] = Square(BLACK)
 
-		for x in range(8):
-			for y in range(8):
-				if (x % 2 != 0) and (y % 2 == 0):
-					matrix[y][x] = Square(WHITE)
-				elif (x % 2 != 0) and (y % 2 != 0):
-					matrix[y][x] = Square(BLACK)
-				elif (x % 2 == 0) and (y % 2 != 0):
-					matrix[y][x] = Square(WHITE)
-				elif (x % 2 == 0) and (y % 2 == 0): 
-					matrix[y][x] = Square(BLACK)
+        for x in range(8):
+            for y in range(3):
+                if matrix[x][y].color == BLACK:
+                    matrix[x][y].occupant = Piece(RED)
+            for y in range(5, 8):
+                if matrix[x][y].color == BLACK:
+                    matrix[x][y].occupant = Piece(BLUE)
 
-		for x in range(8):
-			for y in range(3):
-				if matrix[x][y].color == BLACK:
-					matrix[x][y].occupant = Piece(RED)
-			for y in range(5, 8):
-				if matrix[x][y].color == BLACK:
-					matrix[x][y].occupant = Piece(BLUE)
-
-		return matrix
+        return matrix
 
     def board_string(self, board):
         board_string = [[None] * 8] * 8
@@ -271,7 +270,7 @@ class Board:
         else:
             return 0
 
-    def abjacent(self, pixel):
+    def adjacent(self, pixel):
         x = pixel[0]
         y = pixel[1]
 
@@ -330,14 +329,14 @@ class Board:
         y = pixel[1]
         self.matrix[x][y].occupant = None
 
-    def move_piace(self, pixel_start, pixel_end):
+    def move_piece(self, pixel_start, pixel_end):
         start_x = pixel_start[0]
         start_y = pixel_start[1]
-        end_x = pixel[0]
-        end_y = pixel[1]
+        end_x = pixel_end[0]
+        end_y = pixel_end[1]
 
-        self.matrix[end_x][end_y].occupant = self.matrix[start_x][satrt_y].occupant
-        self.remove_piece((start_x, end_y))
+        self.matrix[end_x][end_y].occupant = self.matrix[start_x][start_y].occupant
+        self.remove_piece((start_x, start_y))
 
     def is_end_square(self, coords):
         if coords[1] == 0 or coords[1] == 7:
